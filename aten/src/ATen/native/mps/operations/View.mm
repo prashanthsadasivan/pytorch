@@ -538,12 +538,16 @@ MPSGraphTensorData* getMPSGraphTensorDataForView(const Tensor& src, MPSShape* mp
     firstDimToSlice++;
   }
 
+  int64_t same_view_numel = 1;
   int64_t view_numel = 1;
   for (const auto i : c10::irange(firstDimToSlice, src_base_shape.size())) {
-    view_numel *= src_base_shape[i];
+    same_view_numel *= src_base_shape[i];
+    if (i != firstDimToSlice) {
+      view_numel *= src_base_shape[i];
+    }
   }
 
-  int64_t sliceOffset = src.storage_offset() / view_numel;
+  int64_t sliceOffset = src.storage_offset() / same_view_numel;
   [srcTensorNDArrayDesc
       sliceDimension:src_ndim_base - 1 - firstDimToSlice
         withSubrange:{static_cast<NSUInteger>(sliceOffset), static_cast<NSUInteger>(src.sizes()[firstDimToSlice])}];
